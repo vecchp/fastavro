@@ -14,6 +14,7 @@ _encoding = 'UTF-8'
 
 if sys.version_info >= (3, 0):
     from io import BytesIO as MemoryIO
+    from io import StringIO as StringIO
     xrange = range
     def py3_btou(n, encoding=_encoding):
         return n.decode(encoding)
@@ -47,6 +48,7 @@ if sys.version_info >= (3, 0):
 
 else:  # Python 2x
     from cStringIO import StringIO as MemoryIO  # flake8: noqa
+    from cStringIO import StringIO as StringIO
     xrange = xrange
 
     def py2_btou(n, encoding=_encoding):
