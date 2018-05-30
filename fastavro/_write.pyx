@@ -609,6 +609,7 @@ def acquaint_schema(schema):
         schema,
         WRITERS,
         lambda schema: lambda bytearray fo, datum, _: write_data(fo, datum, schema),
+        _cache='WRITERS',
     )
     extract_named_schemas_into_repo(
         schema,

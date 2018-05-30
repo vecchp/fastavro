@@ -1,10 +1,12 @@
 # cython: auto_cpdef=True
 
 from os import path
-
+from hashlib import md5
 import json
 
-from ._schema_common import PRIMITIVES, SCHEMA_DEFS, UnknownType
+from ._schema_common import (
+    PRIMITIVES, SCHEMA_DEFS, UnknownType, CACHED_SCHEMAS
+)
 
 
 cpdef inline extract_record_type(schema):
@@ -40,10 +42,32 @@ def schema_name(schema, parent_ns):
     return namespace, '%s.%s' % (namespace, name)
 
 
-def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
+def extract_named_schemas_into_repo(schema,
+                                    repo,
+                                    transformer,
+                                    parent_ns=None,
+                                    _cache=None):
+    if _cache:
+        hashfn = md5()
+        hashfn.update(json.dumps(schema).encode('utf-8'))
+        hexdigest = hashfn.hexdigest()
+        if hexdigest in CACHED_SCHEMAS[_cache]:
+            return
+        else:
+            CACHED_SCHEMAS[_cache].add(hexdigest)
+
+    _extract_named_schemas_into_repo(
+        schema,
+        repo,
+        transformer,
+        parent_ns
+    )
+
+
+def _extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
     if isinstance(schema, list):
         for index, enum_schema in enumerate(schema):
-            namespaced_name = extract_named_schemas_into_repo(
+            namespaced_name = _extract_named_schemas_into_repo(
                 enum_schema,
                 repo,
                 transformer,
@@ -68,7 +92,7 @@ def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
 
     schema_type = schema.get('type')
     if schema_type == 'array':
-        namespaced_name = extract_named_schemas_into_repo(
+        namespaced_name = _extract_named_schemas_into_repo(
             schema['items'],
             repo,
             transformer,
@@ -78,7 +102,7 @@ def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
             schema['items'] = namespaced_name
         return
     elif schema_type == 'map':
-        namespaced_name = extract_named_schemas_into_repo(
+        namespaced_name = _extract_named_schemas_into_repo(
             schema['values'],
             repo,
             transformer,
@@ -99,7 +123,7 @@ def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
             raise Exception(msg)
 
         for field in schema.get('fields', []):
-            namespaced_name = extract_named_schemas_into_repo(
+            namespaced_name = _extract_named_schemas_into_repo(
                 field['type'],
                 repo,
                 transformer,

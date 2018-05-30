@@ -4,7 +4,7 @@ import time
 
 from fastavro.read import READERS
 from fastavro.write import WRITERS
-from fastavro._schema_common import SCHEMA_DEFS
+from fastavro._schema_common import SCHEMA_DEFS, CACHED_SCHEMAS
 from fastavro._timezone import utc
 
 
@@ -25,6 +25,8 @@ def clean_readers_writers_and_schemas():
         diff = set(repo) - keys
         for key in diff:
             del repo[key]
+    CACHED_SCHEMAS['READERS'] = set()
+    CACHED_SCHEMAS['WRITERS'] = set()
 
 
 def assert_naive_datetime_equal_to_tz_datetime(naive_datetime, tz_datetime):

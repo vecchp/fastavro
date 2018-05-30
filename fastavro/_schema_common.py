@@ -20,6 +20,11 @@ SCHEMA_DEFS = {
     'string': 'string',
 }
 
+CACHED_SCHEMAS = {
+    'READERS': set(),
+    'WRITERS': set(),
+}
+
 
 class UnknownType(ValueError):
     def __init__(self, name):

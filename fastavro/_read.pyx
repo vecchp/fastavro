@@ -615,6 +615,7 @@ def acquaint_schema(schema):
         READERS,
         lambda schema: lambda fo, _, r_schema: read_data(
             fo, schema, SCHEMA_DEFS.get(r_schema)),
+        _cache='READERS',
     )
 
 
