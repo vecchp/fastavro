@@ -25,6 +25,7 @@ from ._schema import (
 )
 from ._schema_common import SCHEMA_DEFS
 from ._timezone import epoch
+from .types import Record
 
 NoneType = type(None)
 
@@ -408,19 +409,25 @@ cpdef write_union(bytearray fo, datum, schema):
     cdef int32 most_fields
     cdef int32 index
     cdef int32 fields
-    cdef str schema_name
+    cdef unicode schema_name
+    cdef unicode specified_schema = u''
+
     if isinstance(datum, tuple):
-        (name, datum) = datum
+        specified_schema, datum = datum
+    elif isinstance(datum, Record):
+        specified_schema = datum.get_name()
+
+    if specified_schema:
         for index, candidate in enumerate(schema):
             if extract_record_type(candidate) == 'record':
                 schema_name = candidate["name"]
             else:
                 schema_name = candidate
-            if name == schema_name:
+            if specified_schema == schema_name:
                 break
         else:
             msg = 'provided union type name %s not found in schema %s' \
-                % (name, schema)
+                % (specified_schema, schema)
             raise ValueError(msg)
     else:
         pytype = type(datum)
